@@ -1,0 +1,16 @@
+__pycache__
+.vscode
+dataset/CzEnAli_1.0
+dataset/German-English_WordAlignment
+dataset/TildeMODEL
+dataset/*.algn
+dataset/*.sent
+computed/**/*.pkl
+computed/**/*.pt
+computed/**/*.log
+.ipynb_checkpoints
+cluster_scripts/*.olog
+cluster_scripts/*.elog
+cluster_scripts/*.log
+cluster_logs
+tmp/
