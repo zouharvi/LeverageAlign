@@ -84,6 +84,7 @@ for sent1, sent2 in zip(dataset.sents1, dataset.sents2):
         subw1 = set(subwords1[i1])
         subw2 = set(subwords2[i2])
         features['toksub'].append(len(subw1 & subw2))
+        # features['toksub'].append(len(subw1 & subw2)/max(len(subw1), len(subw2)))
         features['toksubl'].append(abs(len(subw1) - len(subw2)))
         features['tokeq'].append(1*(t1.lower()==t2.lower()))
         features['toklev'].append(levdist(t1.lower(), t2.lower())/max(len(t1), len(t2)))

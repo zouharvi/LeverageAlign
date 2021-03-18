@@ -8,16 +8,16 @@ Invoke MarianNMT scoring and alignment
 
 MARIAN_CONFIGS = {
     'csen': {
-        'model': '~/bergamot-students/csen/csen.student.tiny11/model.bin',
-        'vocab': '~/bergamot-students/csen/csen.student.tiny11/vocab.spm',
+        'model': '~/bergamot-students/csen/csen.student.base/model.bin',
+        'vocab': '~/bergamot-students/csen/csen.student.base/vocab.spm',
     },
     'encs': {
-        'model': '~/bergamot-students/csen/encs.student.tiny11/model.bin',
-        'vocab': '~/bergamot-students/csen/encs.student.tiny11/vocab.spm',
+        'model': '~/bergamot-students/csen/encs.student.base/model.bin',
+        'vocab': '~/bergamot-students/csen/encs.student.base/vocab.spm',
     },
     'ende': {
-        'model': '~/bergamot-students/deen/ende.student.tiny11/model.npz',
-        'vocab': '~/bergamot-students/deen/ende.student.tiny11/vocab.deen.spm',
+        'model': '~/bergamot-students/deen/ende.student.base/model.npz',
+        'vocab': '~/bergamot-students/deen/ende.student.base/vocab.deen.spm',
     },
 }
 
