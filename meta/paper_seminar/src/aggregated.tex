@@ -1,0 +1,58 @@
+\section{Ensembling of Individual Models} \label{sec:aggregated}
+
+In the previous section, we saw that multiple methods with different properties achieved good results, but were sensitive to the method used to induce hard alignment. In this section, we combine them together in a small feed-forward neural network, which can be trained on a small amount of data.
+
+\subsection{Model}
+
+The ensemble neural network itself is a regressor: $\mathbf{F} \rightarrow (0, 1)$, where $\mathbf{F}$ is the set of feature vectors for every pair of source and target tokens. By applying sigmoid to the output and establishing a threshold value for the positive class, the network would then become a classifier. This behaviour can, however, be simulated using $A_2^\alpha$. We work with the threshold explicitly and use the network for computing alignment score and not for the alignment itself.
+
+\paragraph{Additional Features} Apart from M1, M2b, M3aa, M3bb and Attention with averaging (Individual), we also include the output of \fastalign{} as one of the features. We also add four other manually crafted features (Rules). The motivation for the first two is that in some cases, position and token length helps to determine the alignment. The last one is specifically aimed at named entities, which have sparse occurrences in the data and also at non-word tokens, such as full stops, delimiters and quotation marks. 
+
+We list Pearson's correlation coefficient with true alignments averaged on Czech$\leftrightarrow$English data.
+
+\begin{itemize}
+    \item Difference in sentence positions:\\
+    $(i/|S|-j/|T|)^2$ \hfill $\rho = -0.13$
+    \item Difference in token lengths:\\
+    $(|s_i|-|t_j|)^2$ \hfill $\rho = -0.08$
+    \item Difference in subword units counts:\\
+    $(|\text{subw}(s_i)|-|\text{subw}(t_i)|)^2$ \hfill $\rho = -0.02$
+    \item Token string case-insensitive equality:\\
+    $I_{s_i \simeq s_j}$ \hfill  $\rho =  0.28$
+\end{itemize}
+
+\paragraph{Architecture} For every model, the epoch with highest $F_1$ of $A_2^{0.001} \cap A_3^{1} \cap A_4^{1}$. This extractor was found to work best across all ensemble models.
+
+The training was done with cross-entropy loss. The model was composed of series of hidden linear layers, each with biases and ReLU as the activation function with dropouts: $\text{Input}\times 16 \times D_{0.3} \times 8 \times D_{0.2} \times 8 \times \text{Output}$ 
+
+\subsection{Data}
+
+The Czech$\leftrightarrow$English dataset contains 3M source and token target pairs, out of which $2.64\%$ is of a positive class (aligned). For German$\leftrightarrow$English Small that is 22k and $5.61\%$ respectively. This would be an issue for a classifier network and would need, e.g. resampling.
+
+For Czech$\leftrightarrow$English, we used $10\%$ and $10\%$ (500 sentences each) for validation and test data, the rest for training. Samples were split on sentence boundaries. The English$\rightarrow$German was used solely for testing, due to its small size.
+
+\subsection{Evaluation}
+
+The averaged results of each ensemble on Czech$\leftrightarrow$English can be seen in \Cref{tab:ensemble_performance}. We also show the results of $M_1$, but without $A_2$. The reason is that due to the range of $M_1$'s values, it is difficult to establish a cut-off threshold.
+
+The results demonstrate that adding any feature improves the overall ensemble. All features combined together improve on the best individual model by $+0.11$\, $F_1$-score.
+
+\begin{table*}[h!]
+    \center
+    \begin{tabular}{lccc}
+        \toprule
+        Model\,/\,Features & Precision & Recall & F1 \\
+        \midrule
+        $M_1$ & $0.75$ & $0.78$ & $0.75$ \\
+        Rules & $0.49$ & $0.40$ & $0.43$ \\
+        Individual &  $0.84$ & $0.74$ & $0.78$ \\
+        Rules + Indiv. & $0.85$ & $0.75$ & $0.79$ \\
+        Rules + Indiv. + \fastalign{} & $0.85$ & $0.79$ & $0.82$ \\
+        Rules + Indiv. + \fastalign{} + Attention & $0.86$ & $0.84$ & $0.84$ \\
+        Rules + Indiv. + \fastalign{} + Attention + M1 rev. & $0.87$ & $0.86$ & $0.86$ \\
+        \bottomrule
+    \end{tabular}
+    \caption{Average Precision, Recall and $F_1$ scores of $M_1$ (using $A_3^{1} \cap A_4^{1}$) and different ensemble models (using $A_2^{0.001} \cap A_3^{1} \cap A_4^{1}$) on Czech$\leftrightarrow$English data \label{tab:ensemble_performance}}
+\end{table*}
+
+\paragraph{Transfer} The best models on Czech$\leftrightarrow$English (one for each direction) were then used on the English$\rightarrow$German dataset, resulting on average in $F_1 = 0.81$. This is lower than for Czech but still significantly higher ($+0.07$) than for the best individual model, Attention with maximum aggregation. This suggests that the features generalize well and models can be trained even on other language data. Furthermore, since the alignment datasets come from different origins, there may be systematic biases, which lower the transfer performance.

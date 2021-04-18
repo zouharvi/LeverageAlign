@@ -1,0 +1,16 @@
+\section{Summary}
+\vspace{-0.1cm}
+
+This paper explored and compared different methods of inducing word alignment from trained NMT models.
+Despite its simplicity, estimating scores with single word translations (combined with reverse translations) appears to be the fastest and the most robust solution, even compared to word alignment from attention heads.
+Ensembling individual model scores with a simple feed-forward network improves the final performance to AER = $0.14$ on Czech$\leftrightarrow$English data.
+
+\vspace{-0.3cm}
+\paragraph{Future work.}
+
+\Cref{subsec:baseline_models} presented but did not explore an idea of target dropout with multiple tokens in order to better model the fact that words rarely map 1:1.
+We then used neural MT for providing alignment scores but then used a primitive extractor algorithm for obtaining hard alignment. More sophisticated approaches which consider the soft alignment origin (NMT), could vastly improve the performance.
+
+Although it was possible to use any alignment extractor to get hard alignments out of soft ones, we found that the choice of the mechanism and also the parameters had a considerable influence on the performance. These alignment extractors are, however, not bound to alignment from NMT and their ability to be used with other soft alignment models and other symmetrization techniques should be examined further.
+
+Finally, we did not explore the possible effects of fine-tuning the translation model on the available data or training it solely on this data. Similarity based on word embeddings could be used as yet another soft-alignment feature.

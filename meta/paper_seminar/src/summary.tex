@@ -1,0 +1,15 @@
+\section{Summary}
+
+In this paper, we explored and compared different methods of inducing word alignment from trained neural machine translation models.
+
+Despite its simplicity, estimating scores with single word translations (combined with reverse translations) appears to be the fastest and most robust solution, even in comparison to word-alignment from attention heads.
+
+Ensembling individual model scores with a simple feed-forward network improve the final performance to $F_1 = 0.86$ on Czech$\leftrightarrow$English data.
+
+\subsubsection*{Future work}
+
+In \Cref{subsec:baseline_models} we presented but did not explore an idea of target dropout with multiple target tokens missing in order to better model the fact that words rarely map 1:1.
+
+Throughout the experiment, we used neural machine translation for providing alignment scores but then used a primitive extractor algorithm for obtaining hard alignment. More sophisticated extractor approaches, which take into consideration the alignment score origin (neural MT), could vastly improve the performance.
+
+Furthermore, we did not examine the possible effects of fine-tuning the translation model on the available data.

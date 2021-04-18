@@ -1,0 +1,3 @@
+* smazáno [color] v \documentclass - doplní se samo
+* alignment_coverage.pdf musí být v grayscale/, aby bylo dostupné pro čb i barevnou verzi
+* upraveno mybib.bib, přidána DOI

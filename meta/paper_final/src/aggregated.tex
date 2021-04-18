@@ -1,0 +1,69 @@
+\section{Ensembling of Individual Models} \label{sec:aggregated}
+
+In the previous section, we saw that multiple methods with different properties achieved good results, but were sensitive to the method used to induce hard alignment. This section combines them together in a small feed-forward neural network, which can be trained on a small amount of data.
+
+\subsection{Model}
+
+The ensemble neural network itself is a regressor: $\mathbf{F} \rightarrow (0, 1)$, where $\mathbf{F}$ is the set of feature vectors for every pair of source and target tokens.\footnote{A completely different approach would be to simply use (pretrained) word embeddings as an input to the network. This is, however, not possible due to the low amount of gold alignment data.} By applying sigmoid to the output and establishing a threshold value for the positive class, the network would become a classifier. This behaviour can, however, be simulated using $A_2^\alpha$. We work with the threshold explicitly and use the network for computing alignment score and not for the alignment itself.
+For the hard alignment, we use $A_2^{0.001} \cap A_3^{1} \cap A_4^{1}$, which we found to work the best with this ensemble on the training data.
+
+\paragraph{Additional Features.} Apart from $M_1$, $M_2^b$, $M_3^{aa}$, $M_3^{bb}$ and Attention with averaging aggregation (Individual), we also include the output of \fastalign{} as one of the features. Moreover, four other manually crafted features (Manual) are added. The motivation for the first two manual features is that the position and token length help in determining the alignment in some cases. The last two are specifically targeted at named entities, which have sparse occurrences in the data, and also at non-word tokens, such as full stops, delimiters and quotation marks. 
+We list Pearson's correlation coefficient with true alignments on Czech$\leftrightarrow$English data (the two directions averaged).
+
+\smallskip
+\begin{itemize}
+    \item Difference in sentence positions:\\
+    $\rho = \text{-}\ 0.18$, \qquad $abs(\,i/|S|-j/|T|\,)$ 
+    \item Difference in token lengths:\\
+    $\rho = \text{-}\ 0.11$, \qquad $abs(\,|s_i|-|t_j|\,)$ 
+    \item Difference in subword unit counts:\\
+    $\rho = \text{-}\ 0.03$, \qquad $abs(\,|\text{subw}(s_i)|-|\text{subw}(t_j)|\,)$ 
+    \item Normalized token case-insensitive Levenshtein distance:\\
+    $\rho = \text{-}\ 0.30$, \qquad $lev(s_i, t_j)/max(|s_i|, |t_j|)$
+    \item Number of subword units which are present in both tokens:\footnote{Normalized version of this feature had slightly lower correlation coefficient: $0.30$.}\\
+    $\rho = \,\,\,0.32$, \qquad $|\,\text{subw}(s_i) \cap \text{subw}(t_j)\,|$
+    \item Token string case-insensitive equality (equal to zero Levenshtein distance):\\
+    $\rho = \,\,\,0.28$, \qquad $I_{s_i \simeq t_j}$
+\end{itemize}
+
+\paragraph{Architecture.} For every model, the epoch with the lowest AER on the validation dataset is used for the test dataset. This extractor was found to work best across all ensemble models. The training was done with cross-entropy loss. The model was composed of series of hidden linear layers, each with biases and Tanh as the activation function with dropouts around the innermost layer:
+\begin{gather*}
+    L_{|\text{Input}|}^\text{Tanh}\circ L_{32}^\text{Tanh} \circ D_{0.2} \circ L_{16}^\text{Tanh} \circ D_{0.2} \circ L_{16}^\text{Tanh} \circ L_{8}^\text{Tanh} \circ L_1^\text{Softmax}
+\end{gather*}
+
+\subsection{Data}
+
+The Czech$\leftrightarrow$English dataset contains 1.5M source-target pairs, out of which $2.64\%$ is of a positive class (aligned). For German$\leftrightarrow$English Small these quantities are 22k and $5.61\%$ respectively. This could be an issue for a simple classifier network and would need e.g. oversampling of the positive or undersampling of the negative class.
+
+For Czech$\leftrightarrow$English, we used $10\%$ and $10\%$ (250 sentences each) for validation and test data and the rest for training. Samples were split on sentence boundaries. The English$\rightarrow$German was used solely for testing, due to its small size.
+
+\subsection{Evaluation}
+
+The averaged results of each ensemble on Czech$\leftrightarrow$English are in \Cref{tab:ensemble_performance}. We also show the results of $M_1$, but without $A_2$. Due to the range of $M_1$'s values, it is difficult to establish a cut-off threshold. Attention uses $A_3^1$, since intersection with other extractors did not improve the performance, as described in \Cref{sec:evaluation}.
+The results demonstrate that adding any feature improves the overall ensemble. All features combined together improve on the best individual model by $-0.11$\, AER.\footnote{Performed by Student's t-test on 10 runs with $p<0.001$.}
+
+\newcommand{\staroff}{\hspace{0.02cm}$\star$\hspace*{-0.28cm}}
+\begin{table*}[h!]
+    \center
+    \begin{tabular}{lccc}
+        \toprule
+        Model\,/\,Features & Precision & Recall & AER \\
+        \midrule
+        $M_1$ ($A_3^{1} \cap A_4^{1}$) & $0.75$ & $0.78$ & $0.25$ \staroff \\
+        Attention (max, $A_3^1$) & $0.64$ & $0.81$ & $0.29$ \\
+        \fastalign{} Small & $0.54$ & $0.66$ & $0.41$ \\
+        \fastalign{} Big & $0.63$ & $0.64$ & $0.38$ \\
+        \midrule
+        Manual features & $0.55$ & $0.46$ & $0.50$ \\
+        Individual ($M_1$, $M_2^b$, $M_3^{aa}$, $M_3^{bb}$, attention) &  $0.84$ & $0.73$ & $0.23$ \\
+        Manual + Indiv. & $0.85$ & $0.79$ & $0.19$ \\
+        Manual + Indiv. + \fastalign{} & $0.86$ & $0.79$ & $0.18$ \\
+        Manual + Indiv. + \fastalign{} + Attention & $0.85$ & $0.84$ & $0.16$ \\
+        Manual + Indiv. + \fastalign{} + Attention + M1 rev. \hspace*{-0.4cm} & $0.86$ & $0.86$ & $0.14$ \staroff \\
+        \bottomrule
+    \end{tabular}
+    \caption{Average Precision, Recall and AER of $M_1$ (best individual) and different ensemble models (using $A_2^{0.001} \cap A_3^{1} \cap A_4^{1}$) on Czech$\leftrightarrow$English data (averaged) \label{tab:ensemble_performance}}
+\end{table*}
+
+\vspace{-0.2cm}
+\paragraph{Transfer.} The best models on Czech$\leftrightarrow$English (one for each direction) were then used on the English$\rightarrow$German dataset, resulting on average in AER = $0.18$. This is higher than for Czech but still significantly lower (by a margin of $-0.08$)\footnote{Performed by Student's t-test with $p<0.001$.} than for the best individual model, Attention (max). This suggests that the features generalize well and models can be trained even on other language data. Furthermore, since the alignment datasets come from different origins, there may be systematic biases, which lower the performance of the transfer.

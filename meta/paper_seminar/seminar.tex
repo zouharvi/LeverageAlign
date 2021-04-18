@@ -1,0 +1,75 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{cleveref}
+\usepackage{footnote}
+% \usepackage[bottom]{footmisc} % make footnotes go to the bottom
+% \usepackage{natbib}
+\usepackage{booktabs}
+%
+% File acl2020.tex
+%
+%% Based on the style files for ACL 2020, which were
+%% Based on the style files for ACL 2018, NAACL 2018/19, which were
+%% Based on the style files for ACL-2015, with some improvements
+%%  taken from the NAACL-2016 style
+%% Based on the style files for ACL-2014, which were, in turn,
+%% based on ACL-2013, ACL-2012, ACL-2011, ACL-2010, ACL-IJCNLP-2009,
+%% EACL-2009, IJCNLP-2008...
+%% Based on the style files for EACL 2006 by 
+%%e.agirre@ehu.es or Sergi.Balari@uab.es
+%% and that of ACL 08 by Joakim Nivre and Noah Smith
+
+\usepackage[hyperref]{acl2020}
+\usepackage{times}
+\usepackage{latexsym}
+\renewcommand{\UrlFont}{\ttfamily\small}
+
+% This is not strictly necessary, and may be commented out,
+% but it will improve the layout of the manuscript,
+% and will typically save some space.
+\usepackage{microtype}
+
+\aclfinalcopy % Uncomment this line for the final submission
+%\def\aclpaperid{***} %  Enter the acl Paper ID here
+
+%\setlength\titlebox{5cm}
+% You can expand the titlebox if you need extra space
+% to show all the authors. Please do not make the titlebox
+% smaller than 5cm (the original size); we will check this
+% in the camera-ready version and ask you to change it back.
+
+\title{Leveraging Neural MT Output for Word Alignment}
+\author{Vilém Zouhar \\ zouhar@ufal.mff.cuni.cz}
+% \date{}
+
+\begin{document}
+
+\input{MACROS}
+
+\maketitle
+
+\begin{abstract}
+The most common tools for word alignment rely on a large amount of parallel sentences, which are then processed in usually one of the IBM Model algorithms. The training data is, however, the same as for machine translation (MT) systems, especially for neural MT (NMT), which itself is able to produce word alignments using the trained attention heads. This is convenient because word alignment is theoretically a viable byproduct of any attention-based NMT.
+
+We summarize different approaches in which word alignment can be extracted from alignment scores and then explore ways in which scores can be extracted from NMT, focusing on inferring the word alignment scores based on output sentence and token probabilities. We compare this to extracting alignment scores from attention.
+
+We conclude with aggregating all of the sources of alignment scores into a simple feed-forward network, which achieves the best results when combined alignment extractors are used.
+\end{abstract}
+
+\input{src/introduction.tex}
+\input{src/individual.tex}
+\input{src/aggregated.tex}
+\input{src/summary.tex}
+
+\section*{Acknowledgements}
+
+This article has used extensively resources made available by the H2020-ICT-2018-2-825303 (Bergamot) grant.
+
+\bibliography{citations}
+\bibliographystyle{acl_natbib}
+
+\end{document}
