@@ -14,3 +14,5 @@ cluster_scripts/*.elog
 cluster_scripts/*.log
 cluster_logs
 tmp/
+fast_align_csen.a
+fast_align_encs.a
